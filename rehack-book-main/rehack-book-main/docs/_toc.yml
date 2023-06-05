@@ -1,0 +1,10 @@
+format: jb-book
+root: welcome
+parts:
+- caption: Introduction
+  chapters:
+  - file: intro/step0
+- caption: Tuning curves
+  chapters:
+  - file: tuning/01-create_manifest.md
+  - file: tuning/02-contrast_analysis.md

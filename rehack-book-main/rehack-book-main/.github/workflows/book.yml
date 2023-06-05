@@ -1,0 +1,74 @@
+name: deploy-book
+
+# Only run this when the master branch changes
+on:
+  push:
+    branches:
+    - main
+
+# This job installs dependencies, build the book, and pushes it to `gh-pages`
+jobs:
+  deploy-book:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/cache@v3
+      with:
+        path: /var/lib/apt
+        key: apt-cache-v2
+        restore-keys: |
+          apt-cache-v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+                             build-essential \
+                             bzip2 \
+                             ca-certificates \
+                             cm-super \
+                             curl \
+                             dvipng \
+                             fontconfig \
+                             fonts-freefont-ttf \
+                             libcurl4-gnutls-dev \
+                             libssl-dev \
+                             libxml2-dev \
+                             texlive-fonts-extra \
+                             texlive-fonts-recommended \
+                             texlive-latex-extra \
+                             unzip
+
+    - uses: actions/cache@v3
+      with:
+        path: ~/.fonts
+        key: fonts-v4
+        restore-keys: |
+          fonts-v4
+    - name: Install Libre Franklin Open Type
+      run: |
+        if [[ ! -d $HOME/.fonts/LibreFranklin ]]; then
+          curl -sSL "https://fonts.google.com/download?family=Libre%20Franklin" -o /tmp/LibreFranklin.zip
+          mkdir -p $HOME/.fonts/LibreFranklin
+          pushd $HOME/.fonts/LibreFranklin
+          unzip -e /tmp/LibreFranklin.zip
+        fi
+        fc-cache -v
+
+    - uses: actions/checkout@v3
+
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: "3.10"
+    - name: install and build
+      shell: bash -l {0}
+      run: |
+        conda install -c conda-forge h5py
+        pip install -r requirements.txt
+        jupyter-book build docs
+
+    # Push the book's HTML to github-pages
+    - name: GitHub Pages action
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build/html

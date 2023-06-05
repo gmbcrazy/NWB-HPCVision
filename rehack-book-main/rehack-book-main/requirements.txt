@@ -1,0 +1,10 @@
+attr
+ghp-import
+jupyter-book
+jupytext>=1.11.2  # Full compat with myst-nb
+matplotlib
+myst-nb
+pandas
+pytest
+dandi
+joblib
